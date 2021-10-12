@@ -1,0 +1,40 @@
+version: '3.8'
+services:
+  php:
+    build:
+      context: docker/php
+    restart: unless-stopped
+    volumes:
+      - ./app:/var/www/html
+    depends_on:
+      - database
+    networks:
+      - backend-network
+  nginx:
+    image: nginx:1
+    restart: unless-stopped
+    volumes:
+      - ./app:/var/www/html
+      - ./docker/nginx:/etc/nginx/conf.d
+    depends_on:
+      - php
+    ports:
+      - 127.0.0.1:7700:80
+    networks:
+      - frontend-network
+      - backend-network
+  database:
+    image: mariadb:10.5
+    restart: unless-stopped
+    environment:
+      - MYSQL_ROOT_PASSWORD="${DB_PASSWORD}"
+      - MYSQL_DATABASE="${DB_NAME}"
+    ports:
+      - 127.0.0.1:7701:3306
+    networks:
+      - backend-network
+networks:
+  frontend-network:
+    driver: bridge
+  backend-network:
+    driver: bridge
